@@ -12,7 +12,14 @@ from models.resnet import ResNet50, ResNet152, ResNet101
 from utils import clamp, get_loaders, my_logger, my_meter, PCGrad
 
 
-
+def get_video_folder_list(val_dir):
+    """val 폴더의 비디오 폴더명들을 순서대로 가져오기"""
+    video_folders = []
+    for item in sorted(os.listdir(val_dir)):
+        item_path = os.path.join(val_dir, item)
+        if os.path.isdir(item_path) and not item.startswith('.'):
+            video_folders.append(item)
+    return video_folders
 
 def get_aug():
     parser = argparse.ArgumentParser(description='Patch-Fool Training')
@@ -68,10 +75,11 @@ def get_aug():
 def main():
     args = get_aug()
 
-
+    
     logger = my_logger(args)
     meter = my_meter()
-
+    video_folders = get_video_folder_list('/content/patch-fool/frames/val')
+    current_video_idx = 0
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
@@ -358,19 +366,17 @@ def main():
             
             # 배치의 각 이미지를 순서대로 저장
             for j in range(X.size(0)):
-                class_label = y[j].item()
+                # 현재 프레임이 속한 비디오 결정
+                global_frame_idx = i * args.batch_size + j
+                video_name = video_folders[current_video_idx]  # 적절한 로직으로 비디오 인덱스 계산
                 
-                # 클래스 디렉토리 생성 (클래스 번호 기반)
-                class_dir = os.path.join(save_dir, f'class_{class_label:04d}')
-                os.makedirs(class_dir, exist_ok=True)
+                video_dir = os.path.join(save_dir, video_name)
+                os.makedirs(video_dir, exist_ok=True)
                 
-                # 전체 프레임 순서 계산 (배치 인덱스 * 배치 크기 + 배치 내 인덱스)
-                frame_number = i * args.batch_size + j + 1  # 1부터 시작
-                
-                # 순서대로 저장 (5자리 숫자로 패딩)
+                frame_number = j + 1  # 비디오 내에서의 프레임 번호
                 torchvision.utils.save_image(
                     adv_imgs[j], 
-                    os.path.join(class_dir, f'frame_{frame_number:05d}_adversarial.jpg')
+                    os.path.join(video_dir, f'frame_{frame_number:05d}_adversarial.jpg')
                 )
 
 
