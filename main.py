@@ -333,6 +333,7 @@ def main():
             delta.data = clamp(delta, (0 - mu) / std, (1 - mu) / std)
 
         '''Eval Adv Attack'''
+        '''Eval Adv Attack'''
         with torch.no_grad():
             if args.sparse_pixel_num == 0 or args.random_sparse_pixel:
                 perturb_x = X + torch.mul(delta, mask)
@@ -341,26 +342,42 @@ def main():
                 else:
                     out = model(perturb_x)
             else:
-                if train_iter_num < args.learnable_mask_stop:
-                    sparse_mask = torch.zeros_like(mask)
-                    learnable_mask_temp = learnable_mask.view(learnable_mask.size(0), -1)
-                    temp_mask = sparse_mask.view(sparse_mask.size(0), -1)
-                    value, _ = learnable_mask_temp.sort(descending=True)
-                    threshold = value[:, args.sparse_pixel_num - 1].view(-1, 1)
-                    temp_mask[learnable_mask_temp >= threshold] = 1
-
-                print((sparse_mask * mask).view(mask.size(0), -1).sum(-1))
-                print("xxxxxxxxxxxxxxxxxxxxxx")
-                X = original_img * (1 - sparse_mask)
                 perturb_x = X + torch.mul(delta, sparse_mask)
                 if 'DeiT' in args.network:
                     out, atten = model(perturb_x)
                 else:
                     out = model(perturb_x)
 
+            # 교란된 이미지를 denormalize
+            adv_imgs = perturb_x * std + mu
+            adv_imgs = torch.clamp(adv_imgs, 0, 1)
+            
+            # 저장 디렉토리 생성
+            save_dir = os.path.join(args.log_dir, 'adversarial_results')
+            os.makedirs(save_dir, exist_ok=True)
+            
+            # 배치의 각 이미지를 순서대로 저장
+            for j in range(X.size(0)):
+                class_label = y[j].item()
+                
+                # 클래스 디렉토리 생성 (클래스 번호 기반)
+                class_dir = os.path.join(save_dir, f'class_{class_label:04d}')
+                os.makedirs(class_dir, exist_ok=True)
+                
+                # 전체 프레임 순서 계산 (배치 인덱스 * 배치 크기 + 배치 내 인덱스)
+                frame_number = i * args.batch_size + j + 1  # 1부터 시작
+                
+                # 순서대로 저장 (5자리 숫자로 패딩)
+                torchvision.utils.save_image(
+                    adv_imgs[j], 
+                    os.path.join(class_dir, f'frame_{frame_number:05d}_adversarial.jpg')
+                )
+
+
             classification_result_after_attack = out.max(1)[1] == y
             loss = criterion(out, y)
             meter.add_loss_acc("ADV", {'CE': loss.item()}, (classification_result_after_attack.sum().item()), y.size(0))
+
 
         '''Message'''
         if i % 1 == 0:

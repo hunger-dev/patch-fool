@@ -1,0 +1,55 @@
+name:_DeiT-T_ImageNet_250_0.22.log
+batch_size:64
+dataset:ImageNet
+data_dir:/content/Patch-Fool/frames/
+log_dir:log
+crop_size:224
+img_size:224
+workers:16
+network:DeiT-T
+dataset_size:40.0
+patch_select:Attn
+num_patch:250
+sparse_pixel_num:250
+attack_mode:Attention
+atten_loss_weight:0.002
+atten_select:4
+mild_l_2:0.0
+mild_l_inf:0.0
+train_attack_iters:250
+random_sparse_pixel:False
+learnable_mask_stop:200
+attack_learning_rate:0.22
+step_size:10
+gamma:0.95
+seed:0
+
+
+Iter: [0/240] Loss and Acc for all models:
+model:Base Loss:CE: 7.0299(7.0299) Acc:0.0000(0.0000)
+model:ADV Loss:CE: 14.2128(14.2128) Acc:0.0000(0.0000)
+Total False -> True: 0
+Iter: [1/240] Loss and Acc for all models:
+model:Base Loss:CE: 7.1769(7.1034) Acc:0.0000(0.0000)
+model:ADV Loss:CE: 13.7225(13.9677) Acc:0.0000(0.0000)
+Total False -> True: 0
+Iter: [2/240] Loss and Acc for all models:
+model:Base Loss:CE: 7.3263(7.1777) Acc:0.0000(0.0000)
+model:ADV Loss:CE: 13.9505(13.9619) Acc:0.0000(0.0000)
+Total False -> True: 0
+Iter: [3/240] Loss and Acc for all models:
+model:Base Loss:CE: 6.8070(7.0850) Acc:0.0000(0.0000)
+model:ADV Loss:CE: 13.5402(13.8565) Acc:0.0000(0.0000)
+Total False -> True: 0
+Iter: [4/240] Loss and Acc for all models:
+model:Base Loss:CE: 7.5085(7.1697) Acc:0.0000(0.0000)
+model:ADV Loss:CE: 13.9262(13.8705) Acc:0.0000(0.0000)
+Total False -> True: 0
+Iter: [5/240] Loss and Acc for all models:
+model:Base Loss:CE: 7.3131(7.1914) Acc:0.0000(0.0000)
+model:ADV Loss:CE: 13.5596(13.8235) Acc:0.0000(0.0000)
+Total False -> True: 0
+
+Finish! Using time: 920.7923619747162
+model:Base Loss:CE: 7.3131(7.1914) Acc:0.0000(0.0000)
+model:ADV Loss:CE: 13.5596(13.8235) Acc:0.0000(0.0000)

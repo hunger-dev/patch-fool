@@ -8,6 +8,8 @@ from os import path
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
 
 
 mu = [0.485, 0.456, 0.406]
@@ -18,19 +20,55 @@ def clamp(X, lower_limit, upper_limit):
     return torch.max(torch.min(X, upper_limit), lower_limit)
 
 
+import os
+from os import path
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+
+class SortedImageFolder(datasets.ImageFolder):
+    def __init__(self, root, transform=None):
+        super().__init__(root, transform)
+        # 파일 경로를 프레임 번호 기준으로 정렬
+        self.samples = sorted(self.samples, key=lambda x: self._extract_frame_number(x[0]))
+        self.imgs = self.samples  # backward compatibility
+        
+    def _extract_frame_number(self, path):
+        """파일명에서 프레임 번호 추출"""
+        filename = os.path.basename(path)
+        if 'frame_' in filename:
+            try:
+                # frame_00001.jpg 형태에서 숫자 추출
+                frame_num = int(filename.split('_')[1].split('.')[0])
+                return frame_num
+            except:
+                return 0
+        # frame_이 없는 경우 파일명 전체로 정렬
+        return filename
+
 def get_loaders(args):
-    args.mu = mu
-    args.std = std
+    args.mu = [0.485, 0.456, 0.406]  # ImageNet 평균값
+    args.std = [0.229, 0.224, 0.225]  # ImageNet 표준편차
+    
     valdir = path.join(args.data_dir, 'val')
-    val_dataset = datasets.ImageFolder(valdir,
-                                       transforms.Compose([transforms.Resize(args.img_size),
-                                                           transforms.CenterCrop(args.crop_size),
-                                                           transforms.ToTensor(),
-                                                           transforms.Normalize(mean=args.mu, std=args.std)
-                                                           ]))
-    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=args.batch_size, shuffle=True,
-                                             num_workers=args.workers, pin_memory=True)
+    
+    # 정렬된 ImageFolder 사용
+    val_dataset = SortedImageFolder(valdir,
+                                   transforms.Compose([
+                                       transforms.Resize(args.img_size),
+                                       transforms.CenterCrop(args.crop_size),
+                                       transforms.ToTensor(),
+                                       transforms.Normalize(mean=args.mu, std=args.std)
+                                   ]))
+    
+    # shuffle=False로 설정하여 정렬 순서 유지
+    val_loader = DataLoader(val_dataset, 
+                           batch_size=args.batch_size, 
+                           shuffle=False,  # 중요: False로 변경
+                           num_workers=args.workers, 
+                           pin_memory=True)
+    
     return val_loader
+
 
 def visualize_loss(loss_list):
     plt.figure()
