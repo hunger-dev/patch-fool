@@ -1,3 +1,7 @@
+# NOTICE
+This repository is based on [[GATECH-EIC/Patch-Fool](https://github.com/GATECH-EIC/Patch-Fool.git)] with minor modifications.
+Please refer to the original repository for more details.
+
 # Patch-Fool: Are Vision Transformers Always Robust Against Adversarial Perturbations?
 Yonggan Fu, Shunyao Zhang, Shang Wu, Cheng Wan, Yingyan Lin
 
